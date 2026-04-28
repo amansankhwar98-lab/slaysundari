@@ -13,14 +13,13 @@ import { useCartStore, useWishlistStore, useAuthStore, Product } from "@/lib/sto
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import ProductCard from "@/components/home/ProductCard";
-import Link from "next/link";
 import { dedupedFetch } from "@/lib/fetch";
 import { ImageZoom } from "@/components/ui/image-zoom";
 
 export default function ProductPage({
   params,
 }: {
-  params: { id: string } | Promise<{ id: string }>;
+  params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
@@ -31,7 +30,7 @@ export default function ProductPage({
   const [quantity, setQuantity] = useState(1);
   const addToCart = useCartStore((state) => state.addItem);
   const addToWishlist = useWishlistStore((state) => state.addItem);
-  const { user } = useAuthStore(); // ← Added
+  const { user } = useAuthStore();
   const isInWishlist = useWishlistStore((state) =>
     state.isInWishlist(product?.id || "")
   );
@@ -44,13 +43,8 @@ export default function ProductPage({
 
     const fetchProduct = async () => {
       try {
-        let productId: string;
-        if (params instanceof Promise) {
-          const resolvedParams = await params;
-          productId = resolvedParams.id;
-        } else {
-          productId = params.id;
-        }
+        const resolvedParams = await params;
+        const productId = resolvedParams.id;
 
         if (
           currentProductIdRef.current !== null &&
@@ -65,7 +59,7 @@ export default function ProductPage({
         if (!productId) {
           setNotFound(true);
           setLoading(false);
-          currentProductIdRef.current = productId || null;
+          currentProductIdRef.current = null;
           return;
         }
 
@@ -135,7 +129,7 @@ export default function ProductPage({
             <h1 className="text-6xl font-bold mb-4">404</h1>
             <h2 className="text-2xl font-semibold mb-4">Product Not Found</h2>
             <p className="text-muted-foreground mb-8">
-              The product you're looking for doesn't exist.
+              The product you&apos;re looking for doesn&apos;t exist.
             </p>
             <Button onClick={() => router.push("/shop")}>Back to Shop</Button>
           </div>
@@ -149,7 +143,6 @@ export default function ProductPage({
 
   const images = product.images || [product.image];
 
-  // ← Login check added
   const handleAddToCart = async () => {
     if (!user) {
       toast.error("Please login to add items to cart");
@@ -164,7 +157,6 @@ export default function ProductPage({
     }
   };
 
-  // ← Login check added
   const handleAddToWishlist = () => {
     if (!user) {
       toast.error("Please login to add items to wishlist");
